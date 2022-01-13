@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+
+if [ $# -eq 0 ]; then
+    echo "Try s3rm s3://BucketName/Directory/ObjectName"
+    exit
+fi
+
+aws s3 rm $*
