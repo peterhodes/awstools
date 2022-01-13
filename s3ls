@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+
+aws s3 ls $*
+
+if [ $# -eq 0 ]; then
+    echo "Try s3ls s3://BucketName"
+    echo "Try s3ls s3://BucketName/Directory/"
+fi
