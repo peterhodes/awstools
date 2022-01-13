@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+
+if [ $# -eq 0 ]; then
+    echo "Try s3cat s3://BucketName/Directory/Object"
+    exit
+fi
+
+
+aws s3 cp $* - | cat
+echo
