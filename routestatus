@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+
+aws ec2 describe-route-tables  --query "RouteTables[*].{RouteTableId:RouteTableId, VpcId:VpcId, Routes:Routes, AssociatedSubnets:Associations[*].SubnetId}"
