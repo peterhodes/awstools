@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+StackList=$(aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --query 'StackSummaries[*].StackName' --output text)
+
+for Stack in $StackList
+do
+    echo  "> Deleting >$Stack<"
+    aws cloudformation delete-stack --stack-name $Stack
+done
