@@ -1,5 +1,10 @@
 #!/usr/bin/bash
 
+# NOTE - this only attempts to delete stacks that are marked "CREATE_COMPLETE" - therefore some stacks that you might want to delete,
+#        for example those in DELETE_FAILED or *_IN_PROGRESS won't be deleted. The script lists the stacks that are attempted to get deleted,
+#        so it's important to look closely at that output. It's tripped me up a few times.
+
+
 StackList=$(aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --query 'StackSummaries[*].StackName' --output text)
 
 for Stack in $StackList
