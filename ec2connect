@@ -2,8 +2,31 @@
 
 import sys
 import os
+import re
+import subprocess
 
 
+
+### Set the keypair filename to aws.$account.$user.keypair.pem
+### ... but if that convention is not used then default to ~root/.ssh/aws-key-pair.pem~root/.ssh/aws-key-pair.pem
+### ... added this due to now using multiple accounts.
+
+cmdString                                = os.popen('aws sts get-caller-identity --output text').read()
+(AWSaccount,AWSarnstring,AWSuserid,temp) = re.split('\s+',cmdString)
+AWSusername                              = re.split('/',AWSarnstring)[1]
+
+KeyPairBase                              = 'aws.' + AWSaccount + '.' + AWSusername + '.keypair.pem'
+KeyPairPath                              = os.path.expanduser('~') + '/.ssh'
+KeyPairFile                              = KeyPairPath + '/' + KeyPairBase
+
+if not os.path.exists(KeyPairFile):
+    KeyPairFile = KeyPairPath + '/' + 'aws-key-pair.pem'
+
+###
+
+
+### The purpose of getPersistentArg is to store the connection data so that if ec2connect is run again,
+###   it will re-use the last connection data.
 def getPersistentArg(ArgRef):
 
         ThisFile = sys.argv[0]
@@ -35,10 +58,11 @@ def getPersistentArg(ArgRef):
                         ArgString = FileString
 
         return(ArgString)
+###
 
-HostName = getPersistentArg(1)
 
-CmdString = 'ssh -o StrictHostKeyChecking=no -i ~root/.ssh/aws-key-pair.pem ' + HostName
+
+HostName  = getPersistentArg(1)
+CmdString = 'ssh -o StrictHostKeyChecking=no -i ' + KeyPairFile + ' ' + HostName
 print('Running > ',CmdString)
-
-Peter = os.system(CmdString)
+RunMe = os.system(CmdString)
