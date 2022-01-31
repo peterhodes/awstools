@@ -24,4 +24,5 @@ $(aws sts assume-role \
 --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]" \
 --output text))
 
+# We can't pass variables back to the calling shell - but - we can pass them to a new shell.
 $SHELL
