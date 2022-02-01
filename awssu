@@ -33,7 +33,7 @@ fi
 
 echo "Assumed role ARN : $ASSUMED_ARN"
 echo "Expiration       : $EXPIRATION"
-echo "Old shell is PID is $$. Type echo \$\$ to get current shell PID".
+echo "Old shell PID is $$. Type echo \$\$ to get current shell PID".
 echo "Creating new Shell. Use exit command when done."
 
 
