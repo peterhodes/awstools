@@ -8,9 +8,15 @@ then
   exit
 fi
 
-unset AWS_ACCESS_KEY_ID
-unset AWS_SECRET_ACCESS_KEY
-unset AWS_SESSION_TOKEN
+# In certain circumstances it might be necessary to remove these environmental variables
+#   before the assume-role is called. At this moment, this section is impacting the
+#   temporary credentials from a get-session-token and that is why the following lines are
+#   commented out.
+# unset AWS_ACCESS_KEY_ID
+# unset AWS_SECRET_ACCESS_KEY
+# unset AWS_SESSION_TOKEN
+
+
 
 export ROLE=$1
 export ACCOUNTID=$(aws sts get-caller-identity --query "Account" --output text)
@@ -52,5 +58,4 @@ $SHELL
 ##  Old shell is PID is 6067. Type echo $$ to get current shell PID.
 ##  Creating new Shell. Use exit command when done.
 ##  [root@fuji ~]# awswhoami
-##  123456789012    arn:aws:sts::123456789012:assumed-role/peterrole/awssu-6067     AROAQX5ZOCREBlYATUCRU:awssu-6067
-
+##  123456789012    arn:aws:sts::123456789012:assumed-role/peterrole/awssu-6067     AROAQX5ZOCREBlYATUCRU:awssu-6067   
