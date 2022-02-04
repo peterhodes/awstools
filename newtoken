@@ -1,0 +1,57 @@
+#!/usr/bin/bash
+
+PrintUsage() {
+    echo "No token specified"
+    echo "Usage $0 MfaCODE [MfaARN]"
+}
+
+if [ $# -eq 0 ]
+then
+  PrintUsage
+  exit
+fi
+
+export TOKENCODE=$1
+export TOKENARN=$2
+
+if [ -z $TOKENARN ]
+then
+  export TOKENARN=$(aws sts get-caller-identity --query "Arn" --output text | sed 's=:user/=:mfa/=')
+fi
+
+echo $TOKENARN
+
+export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s EXPIRATION=%s" \
+$(aws sts get-session-token \
+--serial-number $TOKENARN \
+--token-code $TOKENCODE \
+--query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken,Expiration]" \
+--output text))
+
+
+export REDACTED_ACCESS_KEY_ID=$(       echo $AWS_ACCESS_KEY_ID        | sed 's/\(................\)\(.*\)/****************\2/')
+export REDACTED_SECRET_ACCESS_KEY_ID=$(echo $AWS_SECRET_ACCESS_KEY_ID | sed 's/\(................\)\(.*\)/****************\2/')
+
+
+echo "$AWS_ACCESS_KEY_ID"
+echo "$AWS_SECRET_ACCESS_KEY"
+echo "$AWS_SESSION_TOKEN"
+echo "$EXPIRATION"
+
+
+if [ -z $AWS_SESSION_TOKEN ]
+then
+  echo "get-session-token appeared to fail. Exiting"
+  exit
+fi
+
+echo "Replacing \$AWS_ACCESS_KEY_ID      :  $REDACTED_ACCESS_KEY_ID"
+echo "Replacing \$AWS_SECRET_ACCESS_KEY"
+echo "Creating  \$AWS_SESSION_TOKEN"
+echo "Expiration                       : $EXPIRATION"
+echo "Old shell PID is $$. Type echo \$\$ to get current shell PID".
+echo "Creating new Shell. Use exit command when done."
+
+
+# We may not be able to pass variables back to the calling shell - but - we can pass them to a new shell.
+$SHELL
