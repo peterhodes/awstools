@@ -1,22 +1,50 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 PrintUsage() {
-    echo "No token specified"
-    echo "Usage $0 MfaCODE [MfaARN]"
+    echo "Usage: $0 MfaCODE [Profile] [MfaARN]"
+    exit 1
 }
 
-if [ $# -eq 0 ]
-then
+Redact() {
+    # Returns a string with middle section redacted
+    #
+    # arg1 = number of chars to retain from start and end sequences
+    # arg 2..n = the text to redact
+    #
+    # If string is longer than 56 columns, it's truncated for neatness
+    redact_char="#"
+    neat_len=56
+    trim_len=$1
+    shift 1
+    text="$*"
+    string_len="${#text}"
+    middle_len=$((string_len-(2*trim_len)))
+    if [[ $middle_len -gt $((neat_len-(2*trim_len))) ]]; then
+        middle_len=$((neat_len-(2*trim_len)))
+    fi
+    _start="${text:0:$trim_len}"
+    _middle=$(printf "${redact_char}%.0s" $(eval echo {1..$middle_len}))
+    _end="${text: -$trim_len}"
+    echo "${_start}${_middle}${_end}"
+}
+
+if [ $# -eq 0 ]; then
   PrintUsage
-  exit
 fi
 
+export REDACT_LEN=3
 export TOKENCODE=$1
-export TOKENARN=$2
+export PROFILE=$2
+export TOKENARN=$3
 
-if [ -z $TOKENARN ]
-then
-  export TOKENARN=$(aws sts get-caller-identity --query "Arn" --output text | sed 's=:user/=:mfa/=')
+if [ -z $PROFILE ]; then
+    export PARG="Default"
+else
+    export PARG="$PROFILE"
+fi
+
+if [ -z $TOKENARN ]; then
+  export TOKENARN=$(aws sts get-caller-identity --query "Arn" --output text --profile $PARG | sed 's=:user/=:mfa/=')
 fi
 
 echo $TOKENARN
@@ -26,32 +54,25 @@ $(aws sts get-session-token \
 --serial-number $TOKENARN \
 --token-code $TOKENCODE \
 --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken,Expiration]" \
---output text))
+--output text \
+--profile $PARG 2>/dev/null))
 
-
-export REDACTED_ACCESS_KEY_ID=$(       echo $AWS_ACCESS_KEY_ID        | sed 's/\(................\)\(.*\)/****************\2/')
-export REDACTED_SECRET_ACCESS_KEY_ID=$(echo $AWS_SECRET_ACCESS_KEY_ID | sed 's/\(................\)\(.*\)/****************\2/')
-
-
-echo "$AWS_ACCESS_KEY_ID"
-echo "$AWS_SECRET_ACCESS_KEY"
-echo "$AWS_SESSION_TOKEN"
-echo "$EXPIRATION"
-
-
-if [ -z $AWS_SESSION_TOKEN ]
-then
-  echo "get-session-token appeared to fail. Exiting"
-  exit
+if [ -z $AWS_SESSION_TOKEN ]; then
+  echo "[!] get-session-token appeared to fail."
+  PrintUsage
 fi
 
-echo "Replacing \$AWS_ACCESS_KEY_ID      :  $REDACTED_ACCESS_KEY_ID"
-echo "Replacing \$AWS_SECRET_ACCESS_KEY"
-echo "Creating  \$AWS_SESSION_TOKEN"
-echo "Expiration                       : $EXPIRATION"
-echo "Old shell PID is $$. Type echo \$\$ to get current shell PID".
-echo "Creating new Shell. Use exit command when done."
+export REDACTED_ACCESS_KEY_ID=$(Redact $REDACT_LEN "$AWS_ACCESS_KEY_ID")
+export REDACTED_SECRET_ACCESS_KEY=$(Redact $REDACT_LEN "$AWS_SECRET_ACCESS_KEY")
+export REDACTED_SESSION_TOKEN=$(Redact $REDACT_LEN $AWS_SESSION_TOKEN)
 
+echo "                        (redacted)"
+echo "AWS_ACCESS_KEY_ID     = $REDACTED_ACCESS_KEY_ID"
+echo "AWS_SECRET_ACCESS_KEY = $REDACTED_SECRET_ACCESS_KEY"
+echo "AWS_SESSION_TOKEN     = $REDACTED_SESSION_TOKEN"
+echo "Expires               : $EXPIRATION"
+echo -e "\nOld shell PID is $$. Type echo \$\$ to get current shell PID".
+echo "Creating new Shell. Use exit command when done."
 
 # We may not be able to pass variables back to the calling shell - but - we can pass them to a new shell.
 $SHELL
