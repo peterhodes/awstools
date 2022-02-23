@@ -49,7 +49,7 @@ fi
 
 echo $TOKENARN
 
-export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s EXPIRATION=%s" \
+export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s AWS_TOKEN_EXPIRY=%s" \
 $(aws sts get-session-token \
 --serial-number $TOKENARN \
 --token-code $TOKENCODE \
@@ -70,7 +70,7 @@ echo "                        (redacted)"
 echo "AWS_ACCESS_KEY_ID     = $REDACTED_ACCESS_KEY_ID"
 echo "AWS_SECRET_ACCESS_KEY = $REDACTED_SECRET_ACCESS_KEY"
 echo "AWS_SESSION_TOKEN     = $REDACTED_SESSION_TOKEN"
-echo "Expires               : $EXPIRATION"
+echo "AWS_TOKEN_EXPIRY      = $AWS_TOKEN_EXPIRY"
 echo -e "\nOld shell PID is $$. Type echo \$\$ to get current shell PID".
 echo "Creating new Shell. Use exit command when done."
 
