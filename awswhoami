@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 
-aws sts get-caller-identity
+if command -V jq >/dev/null 2>&1; then
+    aws sts get-caller-identity --no-cli-pager | jq
+else
+    aws sts get-caller-identity --no-cli-pager
+fi
 # aws sts get-caller-identity --query "Arn"
