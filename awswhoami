@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 aws sts get-caller-identity
 # aws sts get-caller-identity --query "Arn"
