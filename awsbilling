@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 DAYSBACK=$1
+shift 1
 DAYSBACK=${DAYSBACK:-10}
-echo "Looking $DAYSBACK days back..."
+>2 echo "Looking $DAYSBACK days back..."
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
     STARTDATE=$(date -v-${DAYSBACK}d +%F)
@@ -10,4 +11,4 @@ else
     STARTDATE=$(date -d "-${DAYSBACK} days" +%F)
 fi
 
-aws ce get-cost-and-usage --time-period Start="$STARTDATE",End="$(date +%F)" --metrics "BlendedCost" "UnblendedCost" "UsageQuantity" --granularity DAILY
+aws ce get-cost-and-usage --time-period Start="$STARTDATE",End="$(date +%F)" --metrics "BlendedCost" "UnblendedCost" "UsageQuantity" --granularity DAILY $*
