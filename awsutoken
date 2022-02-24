@@ -38,7 +38,7 @@ export PROFILE=$2
 export TOKENARN=$3
 
 if [ -z $PROFILE ]; then
-    export PARG="Default"
+    export PARG="default"
 else
     export PARG="$PROFILE"
 fi
