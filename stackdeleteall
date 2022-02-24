@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 # NOTE - this only attempts to delete stacks that are marked "CREATE_COMPLETE" - therefore some stacks that you might want to delete,
 #        for example those in DELETE_FAILED or *_IN_PROGRESS won't be deleted. The script lists the stacks that are attempted to get deleted,

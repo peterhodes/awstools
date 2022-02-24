@@ -1,4 +1,15 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
-aws sts get-caller-identity
+output=$(aws sts get-caller-identity --no-cli-pager "$@" 2>&1)
 # aws sts get-caller-identity --query "Arn"
+
+if [[ "$output" =~ "InvalidClientTokenId" ]] || [[ "$output" =~ "Unable to locate credentials" ]]; then
+    echo "[!] Invalid or missing credentials, login first"
+    exit 1
+else
+     h_m_s=$(timediff.py "now" "$AWS_TOKEN_EXPIRY" | awk '/timedelta/ {print $(NF)}')
+     h_m_s=${h_m_s:-''}
+     [[ -n "$h_m_s" ]] && echo "[+] Token expires in $h_m_s"
+fi
+
+echo "$output"
