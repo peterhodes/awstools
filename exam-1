@@ -1,0 +1,204 @@
+ 1. Question
+
+A company has moved its suite of internal tools to AWS. For audit compliance, several CloudTrail trails are made to record all API calls. Each log file is also protected with server-side encryption with AWS KMS managed encryption keys (SSE-KMS). Despite this, the company wants to ensure it can identify whether a log file has been tampered with.
+
+Which security measure should the solutions architect employ?
+
+    Configure CloudWatch Logs to monitor all trails and use Amazon SNS to send notifications when a log file has been tampered with.
+    Use the CloudTrail Processing Library when doing audit compliance.
+    Enable CloudTrail Insights events.
+    Enable the CloudTrail Log File Validation feature on all trails.
+
+Correct
+
+To determine whether a log file was modified, deleted, or unchanged after CloudTrail delivered it, you can use CloudTrail log file integrity validation. This feature is built using industry-standard algorithms: SHA-256 for hashing and SHA-256 with RSA for digital signing. This makes it computationally infeasible to modify, delete or forge CloudTrail log files without detection. You can use the AWS CLI to validate the files in the location where CloudTrail delivered them.
+
+Validated log files are invaluable in security and forensic investigations. For example, a validated log file enables you to assert positively that the log file itself has not changed, or that particular user credentials performed specific API activity. The CloudTrail log file integrity validation process also lets you know if a log file has been deleted or changed, or assert positively that no log files were delivered to your account during a given period of time.
+
+When you enable log file integrity validation, CloudTrail creates a hash for every log file that it delivers. Every hour, CloudTrail also creates and delivers a file that references the log files for the last hour and contains a hash of each. This file is called a digest file. CloudTrail signs each digest file using the private key of a public and private key pair. After delivery, you can use the public key to validate the digest file. CloudTrail uses different key pairs for each AWS region.
+
+The digest files are delivered to the same Amazon S3 bucket associated with your trail as your CloudTrail log files. If your log files are delivered from all regions or from multiple accounts into a single Amazon S3 bucket, CloudTrail will deliver the digest files from those regions and accounts into the same bucket.
+
+The digest files are put into a folder separate from the log files. This separation of digest files and log files enables you to enforce granular security policies and permits existing log processing solutions to continue to operate without modification. Each digest file also contains the digital signature of the previous digest file if one exists. The signature for the current digest file is in the metadata properties of the digest file Amazon S3 object.
+
+Hence, the correct answer is: Enable the CloudTrail Log File Validation feature on all trails.
+
+The option that says: Use the CloudTrail Processing Library when doing audit compliance is incorrect. The CloudTrail Processing Library is just a Java library that simplifies the processing of CloudTrail logs. It’s not capable of detecting log tampering.
+
+The option that says: Configure CloudWatch Logs to monitor all trails and use Amazon SNS to send notifications when a log file has been tampered with is incorrect. Enabling CloudWatch Logs will simply record the same event data as the logs that CloudTrail sends on Amazon S3. It cannot identify whether a log has been tampered with.
+
+The option that says: Enable CloudTrail Insights events is incorrect. CloudTrail Insights events is just an optional feature that allows you to detect unusual write API activities in your account.
+
+ 
+
+References:
+
+https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html
+
+https://aws.amazon.com/blogs/aws/aws-cloudtrail-update-sse-kms-encryption-log-file-integrity-verification/
+
+ 
+
+Check out this AWS CloudTrail Cheat Sheet:
+
+https://tutorialsdojo.com/aws-cloudtrail/
+2. Question
+
+A digital bank has recently deployed a fraud detection model in AWS Lambda. The company intends to put the model to test by processing transactions that are recorded in the production DynamoDB table. The security team must be immediately notified when a transaction is flagged as fraudulent.
+
+How can the solutions architect satisfy the requirements while minimizing the impact on database operations and performance?
+
+    Enable DynamoDB Streams and set the Lambda function as the trigger. Alert each member by having them subscribed to an SNS topic.
+    Insert data into the table using DynamoDB transactions and set the Lambda function as target. Send alerts to the team by having each member subscribed to an SNS topic.
+    Create a local secondary index and project the attributes required by the model into it. Run the Lambda function on schedule and let the team subscribe to an SNS topic for notification.
+    Create a DynamoDB global table for the Lambda function to work on. Send notifications to the team members using Amazon SQS.
+
+Incorrect
+
+DynamoDB Streams captures a time-ordered sequence of item-level modifications in any DynamoDB table and stores this information in a log for up to 24 hours. Applications can access this log and view the data items as they appeared before and after they were modified, in near-real-time.
+
+You can consume logs stored in DynamoDB streams in multiple ways. The most common approaches use AWS Lambda or a standalone application that uses the Kinesis Client Library (KCL) with the DynamoDB Streams Kinesis Adapter. In the scenario, we use a Lambda function where the fraud detection model is deployed. By setting the Lambda function as the trigger, you can configure DynamoDB streams to let AWS Lambda run your code when an item is inserted into the table. In this approach, Lambda reads the DynamoDB stream, checks if a transaction is fraudulent, then publishes a message to the SNS topic.
+
+Hence, the correct answer is: Enable DynamoDB Streams and set the Lambda function as the trigger. Alert each member by having them subscribed to an SNS topic.
+
+The option that says: Insert data into the table using DynamoDB transactions and set the Lambda function as target. Send alerts to the team by having each member subscribed to an SNS topic is incorrect. DynamoDB Transactions is just a way for you to group a series of operations into a single transaction. This is desirable when you have applications that require an ACID-compliant database such as those that process financial transactions. Setting a Lambda function as a target is not possible with DynamoDB Transactions.
+
+The option that says: Create a local secondary index and project the attributes required by the model into it. Run the Lambda function on schedule and let the team subscribe to an SNS topic for notification is incorrect. You cannot create a local secondary index on an existing DynamoDB table. Even if it’s possible, it might induce performance degradation since local secondary indexes share capacity with their base table.
+
+The option that says: Create a DynamoDB global table for the Lambda function to work on. Send notifications to the team members using Amazon SQS is incorrect. Amazon SQS is a message queueing service and cannot be used for sending notifications.
+
+ 
+
+References:
+
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html
+
+https://aws.amazon.com/blogs/database/dynamodb-streams-use-cases-and-design-patterns/
+
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.Lambda.Tutorial.html
+
+ 
+
+Check out this Amazon DynamoDB Cheat Sheet:
+
+https://tutorialsdojo.com/amazon-dynamodb/
+3. Question
+
+A company is preparing a solution that the sales team can use for generating weekly revenue reports. The team must be able to run analysis on sales records stored in Amazon S3 and visualize the results of queries.
+
+How can the solutions architect meet the requirement in the most cost-effective way possible?
+
+    Send the records to an Amazon Kinesis Data stream. Run queries using Kinesis Data Analytics. Use Amazon QuickSight for visualization.
+    Load the records into an Amazon OpenSearch (Amazon ElasticSearch) cluster. Run queries in Amazon OpenSearch and visualize the results using Kibana.
+    Use AWS Glue crawler to build tables in AWS Glue Data Catalog. Run queries using Amazon Athena. Use Amazon QuickSight for visualization.
+    Load the records into an Amazon Redshift cluster. Run queries in Amazon Redshift and send the results in Amazon S3. Use Amazon QuickSight for visualization.
+
+Correct
+
+AWS Glue is a fully managed ETL (extract, transform, and load) AWS service. One of its key abilities is to analyze and categorize data. You can use AWS Glue crawlers to automatically infer database and table schema from your data in Amazon S3 and store the associated metadata in the AWS Glue Data Catalog. Athena uses the AWS Glue Data Catalog to store and retrieve table metadata for the Amazon S3 data in your AWS account. The table metadata lets the Athena query engine know how to find, read, and process the data that you want to query.
+
+Finally, you can then visualize your Athena SQL queries in Amazon QuickSight, which lets you easily create and publish interactive BI dashboards by creating data sets.
+
+Hence, the correct answer is: Use AWS Glue crawler to build tables in AWS Glue Data Catalog. Run queries using Amazon Athena. Use Amazon QuickSight for visualization.
+
+The option that says: Load the records into an Amazon OpenSearch (Amazon ElasticSearch) cluster. Run queries in Amazon OpenSearch and visualize the results using Kibana is incorrect. This solution is possible but it’s not the most cost-effective one as it involves provisioning of nodes which are basically EC2 instances under the hood.
+
+The option that says: Load the records into an Amazon Redshift cluster. Run queries in Amazon Redshift and send the results in Amazon S3. Use Amazon QuickSight for visualization is incorrect. This, like the other incorrect option, could be a viable solution, but it is not the most cost-effective approach because provisioning a dedicated cluster is more expensive than using Athena for query execution.
+
+The option that says: Send the records to an Amazon Kinesis Data stream. Run queries using Kinesis Data Analytics. Use Amazon QuickSight for visualization is incorrect. This solution is an anti-pattern since the report is only done once a week. Amazon Kinesis Data Stream is more suited for ingesting streaming data for real-time analytics.
+
+ 
+
+References:
+
+https://aws.amazon.com/blogs/mt/visualizing-aws-config-data-using-amazon-athena-and-amazon-quicksight/
+
+https://aws.amazon.com/blogs/big-data/accessing-and-visualizing-data-from-multiple-data-sources-with-amazon-athena-and-amazon-quicksight/
+
+ 
+
+Check out these Cheat Sheets on AWS Glue, Amazon Athena, and Amazon QuickSight:
+
+https://tutorialsdojo.com/aws-glue/
+
+https://tutorialsdojo.com/amazon-athena/
+
+https://tutorialsdojo.com/amazon-quicksight/
+4. Question
+
+A serverless application has been launched on the DevOps team’s AWS account. Users from the development team’s account must be granted permission to invoke the Lambda function that runs the application. The solution must use the principle of least privilege access.
+
+Which solution will fulfill these criteria?
+
+    On the function’s execution role, add a permission that includes the lambda:* as action and arn:aws:iam::[DevOps AWS Account Number]:root as principal.	
+    On the function’s resource-based policy, add a permission that includes the lambda:InvokeFunction as action and arn:aws:iam::[DEV AWSAccount Number]:root as principal.	
+    On the function’s resource-based policy, add a permission that includes the lambda:* as action and arn:aws:iam::[DevOps AWS Account Number]:root as principal.	
+    On the function’s execution role, add a permission that includes the lambda:InvokeFunction as action and arn:aws:iam::[DEV AWS Account Number]:root as principal.	
+
+Correct
+
+AWS Lambda supports resource-based permissions policies for Lambda functions and layers. Resource-based policies let you grant usage permission to other AWS accounts on a per-resource basis. You also use a resource-based policy to allow an AWS service to invoke your function on your behalf.
+
+For Lambda functions, you can grant account permission to invoke or manage a function. You can add multiple statements to grant access to several accounts, or let any account invoke your function. You can also use the policy to grant invoke permission to an AWS service that invokes a function in response to activity in your account.
+
+In the scenario, the development account must be given access to invoke the Lambda function residing in the DevOps account. For this to happen, you need to configure the resource-based policy of the Lambda function by adding the lambda:InvokeFunction permission as action and specifying the ARN of the development account on the principal element.
+
+Hence, the correct answer is: On the function’s resource-based policy, add a permission that includes the lambda:InvokeFunction as action and arn:aws:iam::[DEV AWS Account Number]:root as principal.
+
+The option that says: On the function’s resource-based policy, add a permission that includes the lambda:* as action and arn:aws:iam::[DevOps AWS Account Number]:root as principal is incorrect. Although this option will undoubtedly allow development account users to use the function, it is not secure as it’s too permissive. The wildcard (*) indicates that all Lambda function operations are permitted.
+
+We can automatically cross out the options that mention the execution role for two reasons. First, execution roles grant Lambda functions access to other AWS services. You can’t use it to control which entity can invoke the function. Second, IAM roles, in general, do not support the principal element. Hence, the following options are incorrect:
+
+– On the function’s execution role, add a permission that includes the lambda:* as action and arn:aws:iam::[DevOps AWS Account Number]:root as principal.
+
+– On the function’s execution role, add a permission that includes the lambda:InvokeFunction as action and arn:aws:iam::[DEV AWS Account Number]:root as principal.
+
+ 
+
+References:
+
+https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html
+
+https://aws.amazon.com/premiumsupport/knowledge-center/lambda-resource-based-policies/
+
+ 
+
+Check out this AWS Lambda Cheat Sheet:
+
+https://tutorialsdojo.com/aws-lambda/
+5. Question
+
+An edtech startup is deciding which database solution to use for storing marketing data such as user profiles, events, and clickstreams. The team has little experience managing large-scale systems and is still unsure about the schema design.
+
+As a consultant, which service should you recommend as the MOST suitable?
+
+    Amazon DynamoDB On-demand
+    Amazon RedShift Serverless
+    Amazon Aurora Serverless
+    Amazon Athena
+
+Incorrect
+
+Amazon DynamoDB, a NoSQL database, is an ideal solution for this scenario because it allows for a flexible schema, which means that each row can have any number of columns at any time. This enables you to easily adapt the tables as your business requirements change, without having to redefine table schema as you would in a relational database.
+
+Also with DynamoDB On-demand, you can enable DynamoDB to serve thousands of requests per second without capacity planning. DynamoDB on-demand offers simple pay-per-request pricing for read and write requests so that you only pay for what you use, making it easy to balance costs and performance.
+
+Hence, the correct answer is: Amazon DynamoDB On-demand.
+
+Amazon Aurora Serverless and Amazon RedShift Serverless are both incorrect as these are relational database services, meaning you have to prepare and design a schema beforehand when creating tables.
+
+Amazon Athena is incorrect. Amazon Athena is a query service, not a database service.
+
+ 
+
+References:
+
+https://aws.amazon.com/blogs/aws/amazon-dynamodb-on-demand-no-capacity-planning-and-pay-per-request-pricing/
+
+https://aws.amazon.com/dynamodb/pricing/on-demand/
+
+ 
+
+Check out this Amazon DynamoDB Cheat Sheet:
+
+https://tutorialsdojo.com/amazon-dynamodb/
