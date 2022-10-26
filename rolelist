@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+
+aws iam list-roles --output text --query 'Roles[*].RoleName'
