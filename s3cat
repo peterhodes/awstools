@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 if [ $# -eq 0 ]; then
     echo "Try s3cat s3://BucketName/Directory/Object"
