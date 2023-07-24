@@ -1,0 +1,35 @@
+#!/usr/bin/python3
+
+import subprocess
+import json
+
+def get_instance_id():
+    try:
+        command_output = subprocess.check_output(['ec2-metadata', '-i'], stderr=subprocess.STDOUT).decode().strip()
+        instance_id = command_output.split(":")[1].strip()
+        return instance_id
+    except (subprocess.CalledProcessError, IndexError) as e:
+        print("Error: Unable to retrieve the instance ID using ec2-metadata command.")
+        return None
+
+def get_instance_metadata_options(instance_id):
+    try:
+        cmd_output = subprocess.check_output(['aws', 'ec2', 'describe-instances', '--instance-ids', instance_id, '--query', 'Reservations[*].Instances[*].MetadataOptions']).decode()
+        metadata_options = json.loads(cmd_output)
+        return metadata_options
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        print("Error: Unable to retrieve instance metadata options using AWS CLI command.")
+        return None
+
+def main():
+    instance_id = get_instance_id()
+    metadata_options = get_instance_metadata_options(instance_id)
+    if metadata_options:
+        print("Metadata Options:")
+        print(json.dumps(metadata_options, indent=2))
+
+if __name__ == "__main__":
+    main()
+
+
+
