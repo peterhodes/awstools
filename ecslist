@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Set your AWS CLI profile if needed
+# AWS_PROFILE="your-aws-profile-name"
+
+# Set your cluster name
+CLUSTER_NAME="GW-LIVE-ECS"
+
+# List all task ARNs in the cluster
+task_arns=$(aws ecs list-tasks --cluster $CLUSTER_NAME --output text --query 'taskArns')
+
+# Iterate through the task ARNs and describe each task to get its IP address
+for task_arn in $task_arns
+do
+  task_info=$(aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $task_arn --output json)
+  task_ip=$(echo "$task_info" | jq -r '.tasks[0].attachments[0].details[] | select(.name == "privateIPv4Address").value')
+  echo "Task ARN: $task_arn | IP Address: $task_ip"
+done
